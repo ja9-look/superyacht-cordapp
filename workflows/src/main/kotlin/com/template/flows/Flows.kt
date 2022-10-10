@@ -16,7 +16,7 @@ import net.corda.core.flows.FlowSession
 
 import net.corda.core.identity.Party
 
-import com.template.contracts.TemplateContract
+import com.template.contracts.YachtContract
 
 import net.corda.core.transactions.TransactionBuilder
 
@@ -48,7 +48,7 @@ class Initiator(private val receiver: Party) : FlowLogic<SignedTransaction>() {
 
         // Step 3. Create a new TransactionBuilder object.
         val builder = TransactionBuilder(notary)
-                .addCommand(TemplateContract.Commands.Create(), listOf(sender.owningKey, receiver.owningKey))
+                .addCommand(YachtContract.Commands.Create(), listOf(sender.owningKey, receiver.owningKey))
                 .addOutputState(output)
 
         // Step 4. Verify and sign it with our KeyPair.
