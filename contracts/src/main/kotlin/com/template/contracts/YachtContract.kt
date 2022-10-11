@@ -20,17 +20,26 @@ class YachtContract : Contract {
     override fun verify(tx: LedgerTransaction) {
         // Verification logic goes here.
         val command = tx.commands.requireSingleCommand<Commands>()
-        val input = tx.inputsOfType<YachtState>().first()
-        val output = tx.outputsOfType<YachtState>().first()
+        val inputs = tx.inputStates
+        val outputs = tx.outputStates
+        val firstOutput = tx.outputsOfType<YachtState>()[0]
+
         when (command.value) {
             is Commands.Create -> requireThat {
-                "No inputs should be consumed when creating a new YachtState.".using(tx.inputStates.isEmpty())
-//                "There should only be one output when creating a new YachtState.".using(tx.outputStates.size == 1)
-//                "The owner must be a signer".using(command.signers.containsAll(listOf(input.owner.owningKey)))
+                "No inputs should be consumed when creating a new YachtState.".using(inputs.isEmpty())
+                "There should only be one output when creating a new YachtState.".using(outputs.size == 1)
+                "The owner must be a required signer".using(command.signers.contains(firstOutput.owner.owningKey))
             }
-//            is Commands.Purchase -> requireThat{
-//
-//            }
+            is Commands.Purchase -> requireThat{
+                val firstInput = tx.inputsOfType<YachtState>()[0]
+                "There should be one input when purchasing a Yacht.".using(inputs.size == 1)
+                "There should be one output when purchasing a Yacht.".using(outputs.size == 1)
+                "The output must be a YachtState.".using(outputs.first() is YachtState)
+                "The yacht must be marked as for sale.".using(firstInput.forSale)
+                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstOutput.participants.map { it.owningKey }))
+                "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
+
+            }
         }
     }
 

@@ -28,6 +28,26 @@ data class YachtState(
     override val participants: List<AbstractParty> = listOf(owner)
 ) : OwnableState, LinearState {
     override fun withNewOwner(newOwner: AbstractParty): CommandAndState {
-     return CommandAndState( YachtContract.Commands.Purchase(), YachtState(newOwner, this.name, this.type, this.length, this.beam, this.builderName, this.yearOfManufacture, this.grossTonnage, this.maxSpeed, this.cruiseSpeed, this.imageUrls, this.price, this.forSale, this.linearId, listOf(this.owner, newOwner)))
+        return CommandAndState(
+            YachtContract.Commands.Purchase(),
+            YachtState(
+                newOwner,
+                this.name,
+                this.type,
+                this.length,
+                this.beam,
+                this.builderName,
+                this.yearOfManufacture,
+                this.grossTonnage,
+                this.maxSpeed,
+                this.cruiseSpeed,
+                this.imageUrls,
+                this.price,
+                this.forSale,
+                this.linearId,
+                listOf(this.owner, newOwner)
+            )
+        )
     }
 }
+
