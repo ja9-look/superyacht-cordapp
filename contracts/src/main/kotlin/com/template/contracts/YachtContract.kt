@@ -36,9 +36,8 @@ class YachtContract : Contract {
                 "There should be one output when purchasing a Yacht.".using(outputs.size == 1)
                 "The output must be a YachtState.".using(outputs.first() is YachtState)
                 "The yacht must be marked as for sale.".using(firstInput.forSale)
-                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstOutput.participants.map { it.owningKey }))
+                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstInput.participants.map {it.owningKey}))
                 "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
-
             }
         }
     }
