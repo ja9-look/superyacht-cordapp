@@ -17,9 +17,9 @@ import kotlin.test.assertTrue
 class ContractTests {
     private val ledgerServices: MockServices = MockServices()
 
-    private val boatIntl = TestIdentity(CordaX500Name("Boat International", "", "GB") )
-    private val alice = TestIdentity(CordaX500Name("Alice", "", "GB") )
-    private val bob = TestIdentity(CordaX500Name("Bob", "", "GB") )
+    private val boatIntl = TestIdentity(CordaX500Name("Boat International", "London", "GB") )
+    private val alice = TestIdentity(CordaX500Name("Alice", "London", "GB") )
+    private val bob = TestIdentity(CordaX500Name("Bob", "London", "GB") )
 
     private val mockYachtRef = YachtRef(
         boatIntl.party,
