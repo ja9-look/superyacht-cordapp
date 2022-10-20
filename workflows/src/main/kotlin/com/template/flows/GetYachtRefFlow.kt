@@ -7,7 +7,6 @@ import com.template.states.YachtRef
 
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.UniqueIdentifier
-import java.util.Date
 
 // *********
 // * Flows *

@@ -1,5 +1,6 @@
 package com.template
 
+import com.template.flows.CreateYachtStateFlow
 import com.template.flows.GetYachtRefFlow
 import com.template.flows.IssueYachtRefFlow
 import com.template.states.YachtRef
@@ -57,7 +58,7 @@ class FlowTests {
         network.stopNodes()
     }
 
-    /* ISSUE YACHT REF FLOW TESTS */
+    /* ISSUE YACHT REF FLOW */
 
     @Test
     fun issueYachtRefFlowIssuesYachtRefWithExpectedIssuerAndOwner() {
@@ -78,7 +79,7 @@ class FlowTests {
         Assert.assertTrue(future.get().state.data is YachtRef)
     }
 
-    /* GET YACHT REF TESTS */
+    /* GET YACHT REF FLOW */
 
     @Test
     fun getYachtRefFlowFetchesTheLatestYachtRef(){
@@ -91,7 +92,25 @@ class FlowTests {
         val getYachtRefFuture = b.startFlow(getFlow)
         network.runNetwork()
 
-        Assert.assertTrue(getYachtRefFuture.get().single().state.data == issueYachtRefFuture.get().state.data)
+        Assert.assertEquals(getYachtRefFuture.get().single().state.data, issueYachtRefFuture.get().state.data)
+    }
+
+    /* CREATE YACHT STATE FLOW */
+    @Test
+    fun createYachtStateFlowCreateYachtStateSuccessfullyWithExpectedOwnerPriceForSaleAndLinearId(){
+        val issueFlow = IssueYachtRefFlow.Initiator(b.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
+        val issueYachtRefFuture = a.startFlow(issueFlow)
+        network.runNetwork()
+        Assert.assertEquals(a.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.issuer)
+
+        val createYachtStateFlow = CreateYachtStateFlow.Initiator(price, forSale, issueYachtRefFuture.get().state.data.linearId)
+        val createYachtStateFuture = b.startFlow(createYachtStateFlow)
+        network.runNetwork()
+
+        Assert.assertEquals(issueYachtRefFuture.get().state.data.owner, createYachtStateFuture.get().state.data.owner)
+        Assert.assertEquals(price, createYachtStateFuture.get().state.data.price)
+        Assert.assertEquals(forSale, createYachtStateFuture.get().state.data.forSale)
+        Assert.assertEquals(issueYachtRefFuture.get().state.data.linearId, createYachtStateFuture.get().state.data.linearId)
     }
 
 }

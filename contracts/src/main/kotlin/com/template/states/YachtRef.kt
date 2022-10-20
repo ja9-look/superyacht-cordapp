@@ -26,6 +26,6 @@ data class YachtRef(
     override val linearId: UniqueIdentifier = UniqueIdentifier()
 ):
     LinearState {
-        override val participants: List<AbstractParty> get() = listOf(issuer, owner)
+    override val participants: List<AbstractParty> get() = listOf(issuer, owner)
     }
 
