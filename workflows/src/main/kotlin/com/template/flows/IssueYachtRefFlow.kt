@@ -96,20 +96,21 @@ object IssueYachtRefFlow{
             ).tx.outRefsOfType(YachtRef::class.java).single()
         }
 
-        @InitiatedBy(Initiator::class)
-        class Responder(val otherPartySession: FlowSession): FlowLogic<SignedTransaction>(){
-            @Suspendable
-            override fun call(): SignedTransaction {
-                val signTransactionFlow = object: SignTransactionFlow(otherPartySession) {
-                    override fun checkTransaction(stx: SignedTransaction) = requireThat {
-                        val output = stx.tx.outputs.single().data
-                        "This must be an issue yacht ref transaction." using (output is YachtRef)
-                    }
-                }
-                val txId = subFlow(signTransactionFlow).id
 
-                return subFlow(ReceiveFinalityFlow(otherPartySession, expectedTxId = txId))
+    }
+    @InitiatedBy(Initiator::class)
+    class Responder(val otherPartySession: FlowSession): FlowLogic<SignedTransaction>(){
+        @Suspendable
+        override fun call(): SignedTransaction {
+            val signTransactionFlow = object: SignTransactionFlow(otherPartySession) {
+                override fun checkTransaction(stx: SignedTransaction) = requireThat {
+                    val output = stx.tx.outputs.single().data
+                    "This must be an issue yacht ref transaction." using (output is YachtRef)
+                }
             }
+            val txId = subFlow(signTransactionFlow).id
+
+            return subFlow(ReceiveFinalityFlow(otherPartySession, expectedTxId = txId))
         }
     }
 }

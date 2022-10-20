@@ -1,25 +1,19 @@
 package com.template
 
+import com.template.flows.GetYachtRefFlow
 import com.template.flows.IssueYachtRefFlow
 import com.template.states.YachtRef
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import com.template.states.YachtState
-import java.util.concurrent.Future;
-import net.corda.core.node.services.vault.QueryCriteria
-import net.corda.core.transactions.SignedTransaction
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
-import net.corda.core.node.services.Vault.StateStatus
-import net.corda.testing.core.TestIdentity
 import org.junit.Assert
 import java.math.BigDecimal
 import java.util.Currency
 import java.util.Date
-import java.util.concurrent.ExecutionException
 
 
 class FlowTests {
@@ -40,6 +34,9 @@ class FlowTests {
         a = network.createPartyNode()
         b = network.createPartyNode()
         c = network.createPartyNode()
+
+        // For real nodes this happens automatically, but we have to manually register the flow for tests.
+        listOf(a, b, c).forEach { it.registerInitiatedFlow(IssueYachtRefFlow.Responder::class.java) }
         network.runNetwork()
     }
 
@@ -60,13 +57,41 @@ class FlowTests {
         network.stopNodes()
     }
 
+    /* ISSUE YACHT REF FLOW TESTS */
+
     @Test
-    fun issuesYachtRefWithExpectedIssuer() {
+    fun issueYachtRefFlowIssuesYachtRefWithExpectedIssuerAndOwner() {
         val flow = IssueYachtRefFlow.Initiator(c.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
         val future = a.startFlow(flow)
         network.runNetwork()
 
         Assert.assertEquals(a.info.legalIdentities.first(), future.get().state.data.issuer)
+        Assert.assertEquals(c.info.legalIdentities.first(), future.get().state.data.owner)
+    }
+
+    @Test
+    fun issueYachtRefFlowIssuesOutputOfExpectedTypeYachtRef() {
+        val flow = IssueYachtRefFlow.Initiator(c.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
+        val future = a.startFlow(flow)
+        network.runNetwork()
+
+        Assert.assertTrue(future.get().state.data is YachtRef)
+    }
+
+    /* GET YACHT REF TESTS */
+
+    @Test
+    fun getYachtRefFlowFetchesTheLatestYachtRef(){
+        val issueFlow = IssueYachtRefFlow.Initiator(b.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
+        val issueYachtRefFuture = a.startFlow(issueFlow)
+        network.runNetwork()
+        Assert.assertEquals(a.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.issuer)
+
+        val getFlow = GetYachtRefFlow.Initiator(b.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.linearId)
+        val getYachtRefFuture = b.startFlow(getFlow)
+        network.runNetwork()
+
+        Assert.assertTrue(getYachtRefFuture.get().single().state.data == issueYachtRefFuture.get().state.data)
     }
 
 }
