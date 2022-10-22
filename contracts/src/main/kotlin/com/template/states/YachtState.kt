@@ -15,7 +15,7 @@ data class YachtState(
     override val owner: AbstractParty,
     val price: Amount<Currency>,
     val forSale: Boolean,
-    override val linearId: UniqueIdentifier = UniqueIdentifier(),
+    override val linearId: UniqueIdentifier,
     override val participants: List<AbstractParty> = listOf(owner)
 ) : OwnableState, LinearState {
     override fun withNewOwner(newOwner: AbstractParty): CommandAndState {

@@ -22,16 +22,19 @@ class GetYachtRefFlow {
     ) : FlowLogic <List<StateAndRef<YachtRef>>>() {
 
         @Suspendable
+
         override fun call(): List<StateAndRef<YachtRef>> {
-                val listYachtRefStateAndRefs = serviceHub.vaultService.queryBy(YachtRef::class.java).states
-                if (listYachtRefStateAndRefs.isEmpty()){
+
+            val listYachtRefStateAndRefs = serviceHub.vaultService.queryBy(YachtRef::class.java).states
+
+            if (listYachtRefStateAndRefs.isEmpty()){
                     return emptyList()
                 } else {
-                    listYachtRefStateAndRefs.filter{
+                    val filteredYachtStateAndRef = listYachtRefStateAndRefs.filter{
                         it.state.data.owner == owner &&
                         it.state.data.linearId == yachtLinearId
                     }
-                    return listYachtRefStateAndRefs
+                    return filteredYachtStateAndRef
                 }
         }
 

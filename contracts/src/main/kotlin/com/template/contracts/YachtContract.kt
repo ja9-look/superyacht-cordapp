@@ -29,6 +29,7 @@ class YachtContract : Contract {
                 "No inputs should be consumed when creating a new YachtState.".using(inputs.isEmpty())
                 "There should only be one output when creating a new YachtState.".using(outputs.size == 1)
                 "The owner must be a required signer".using(command.signers.contains(firstOutput.owner.owningKey))
+//                "The owner of the yacht state must be the owner of the matching yacht ref."
             }
             is Commands.Purchase -> requireThat{
                 val firstInput = tx.inputsOfType<YachtState>()[0]
@@ -38,6 +39,7 @@ class YachtContract : Contract {
                 "The yacht must be marked as for sale.".using(firstInput.forSale)
                 "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstInput.participants.map {it.owningKey}))
                 "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
+//                "The initiator of the transaction must be the current owner of the yacht state.".using(firstInput.owner == )
             }
         }
     }

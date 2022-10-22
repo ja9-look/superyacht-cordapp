@@ -3,7 +3,9 @@ package com.template
 import com.template.flows.CreateYachtStateFlow
 import com.template.flows.GetYachtRefFlow
 import com.template.flows.IssueYachtRefFlow
+import com.template.flows.PurchaseYachtDvPFlow
 import com.template.states.YachtRef
+import com.template.states.YachtState
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
@@ -81,19 +83,19 @@ class FlowTests {
 
     /* GET YACHT REF FLOW */
 
-    @Test
-    fun getYachtRefFlowFetchesTheLatestYachtRef(){
-        val issueFlow = IssueYachtRefFlow.Initiator(b.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
-        val issueYachtRefFuture = a.startFlow(issueFlow)
-        network.runNetwork()
-        Assert.assertEquals(a.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.issuer)
-
-        val getFlow = GetYachtRefFlow.Initiator(b.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.linearId)
-        val getYachtRefFuture = b.startFlow(getFlow)
-        network.runNetwork()
-
-        Assert.assertEquals(getYachtRefFuture.get().single().state.data, issueYachtRefFuture.get().state.data)
-    }
+//    @Test
+//    fun getYachtRefFlowFetchesTheLatestYachtRef(){
+//        val issueFlow = IssueYachtRefFlow.Initiator(b.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
+//        val issueYachtRefFuture = a.startFlow(issueFlow)
+//        network.runNetwork()
+//        Assert.assertEquals(a.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.issuer)
+//
+//        val getFlow = GetYachtRefFlow.Initiator(b.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.linearId)
+//        val getYachtRefFuture = b.startFlow(getFlow)
+//        network.runNetwork()
+//
+//        Assert.assertEquals(getYachtRefFuture.get().single().state.data, issueYachtRefFuture.get().state.data)
+//    }
 
     /* CREATE YACHT STATE FLOW */
     @Test
@@ -103,14 +105,48 @@ class FlowTests {
         network.runNetwork()
         Assert.assertEquals(a.info.legalIdentities.first(), issueYachtRefFuture.get().state.data.issuer)
 
-        val createYachtStateFlow = CreateYachtStateFlow.Initiator(price, forSale, issueYachtRefFuture.get().state.data.linearId)
+        val createYachtStateFlow = CreateYachtStateFlow.Initiator(b.info.legalIdentities.first(), price, forSale, issueYachtRefFuture.get().state.data.linearId)
         val createYachtStateFuture = b.startFlow(createYachtStateFlow)
         network.runNetwork()
 
-        Assert.assertEquals(issueYachtRefFuture.get().state.data.owner, createYachtStateFuture.get().state.data.owner)
-        Assert.assertEquals(price, createYachtStateFuture.get().state.data.price)
-        Assert.assertEquals(forSale, createYachtStateFuture.get().state.data.forSale)
-        Assert.assertEquals(issueYachtRefFuture.get().state.data.linearId, createYachtStateFuture.get().state.data.linearId)
+        val issuedYachtRefData = issueYachtRefFuture.get().state.data
+        val createdYachtStateData = createYachtStateFuture.get().tx.getOutput(0) as YachtState
+
+        Assert.assertEquals(issuedYachtRefData.owner, createdYachtStateData.owner)
+        Assert.assertEquals(price, createdYachtStateData.price)
+        Assert.assertEquals(forSale, createdYachtStateData.forSale)
+        Assert.assertEquals(issuedYachtRefData.linearId, createdYachtStateData.linearId)
     }
 
+    /* PURCHASE YACHT STATE FLOW */
+    @Test
+    fun purchaseYachtDvPFlowUpdatesTheYachtStateWithNewOwner(){
+        // Issue Yacht Ref
+        val issueFlow = IssueYachtRefFlow.Initiator(b.info.legalIdentities.first(), name, type, length, beam, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, UniqueIdentifier())
+        val issueYachtRefFuture = a.startFlow(issueFlow)
+        network.runNetwork()
+
+        val issuedYachtRefData = issueYachtRefFuture.get().state.data
+        Assert.assertEquals(a.info.legalIdentities.first(), issuedYachtRefData.issuer)
+
+        // Create Yacht State
+        val createYachtStateFlow = CreateYachtStateFlow.Initiator(b.info.legalIdentities.first(), price, forSale, issuedYachtRefData.linearId)
+        val createYachtStateFuture = b.startFlow(createYachtStateFlow)
+        network.runNetwork()
+
+        val createdYachtStateData = createYachtStateFuture.get().tx.getOutput(0) as YachtState
+        Assert.assertEquals(issueYachtRefFuture.get().state.data.owner, createdYachtStateData.owner)
+
+        // Purchase Yacht State
+
+        val purchaseYachtStateFlow = PurchaseYachtDvPFlow.Initiator(c.info.legalIdentities.first(), createdYachtStateData.linearId, createdYachtStateData.price)
+        val purchaseYachtDvPFlowFuture = b.startFlow(purchaseYachtStateFlow)
+        network.runNetwork()
+
+        val purchasedYachtDvPData = purchaseYachtDvPFlowFuture.get().tx.getOutput(0) as YachtState
+
+        // Check that the new owner is correct
+        Assert.assertEquals(c.info.legalIdentities.first(), purchasedYachtDvPData.owner)
+
+    }
 }

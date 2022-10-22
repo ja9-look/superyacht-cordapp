@@ -23,7 +23,7 @@ data class YachtRef(
     val maxSpeed: Int,
     val cruiseSpeed: Int,
     val imageUrls: List<String>,
-    override val linearId: UniqueIdentifier = UniqueIdentifier()
+    override val linearId: UniqueIdentifier
 ):
     LinearState {
     override val participants: List<AbstractParty> get() = listOf(issuer, owner)

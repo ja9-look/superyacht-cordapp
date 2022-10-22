@@ -82,15 +82,15 @@ object IssueYachtRefFlow{
 
             // Send the state to the  counterparty (owner) and receive it back with their signature
             progressTracker.currentStep = GATHERING_SIGS
-            val otherPartySession = initiateFlow(owner)
-            val fullySignedTx = subFlow(CollectSignaturesFlow(partSignedTx, setOf(otherPartySession), GATHERING_SIGS.childProgressTracker()))
+            val counterpartySession = initiateFlow(owner)
+            val fullySignedTx = subFlow(CollectSignaturesFlow(partSignedTx, setOf(counterpartySession), GATHERING_SIGS.childProgressTracker()))
 
             // Notarise the transaction and record the state in the ledger
             progressTracker.currentStep = FINALISING_TRANSACTION
             return subFlow(
                 FinalityFlow(
                     transaction = fullySignedTx,
-                    sessions = listOf(otherPartySession),
+                    sessions = listOf(counterpartySession),
                     progressTracker = FINALISING_TRANSACTION.childProgressTracker()
                 )
             ).tx.outRefsOfType(YachtRef::class.java).single()
@@ -99,10 +99,10 @@ object IssueYachtRefFlow{
 
     }
     @InitiatedBy(Initiator::class)
-    class Responder(val otherPartySession: FlowSession): FlowLogic<SignedTransaction>(){
+    class Responder(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
         @Suspendable
         override fun call(): SignedTransaction {
-            val signTransactionFlow = object: SignTransactionFlow(otherPartySession) {
+            val signTransactionFlow = object: SignTransactionFlow(counterpartySession) {
                 override fun checkTransaction(stx: SignedTransaction) = requireThat {
                     val output = stx.tx.outputs.single().data
                     "This must be an issue yacht ref transaction." using (output is YachtRef)
@@ -110,7 +110,7 @@ object IssueYachtRefFlow{
             }
             val txId = subFlow(signTransactionFlow).id
 
-            return subFlow(ReceiveFinalityFlow(otherPartySession, expectedTxId = txId))
+            return subFlow(ReceiveFinalityFlow(counterpartySession, expectedTxId = txId))
         }
     }
 }
