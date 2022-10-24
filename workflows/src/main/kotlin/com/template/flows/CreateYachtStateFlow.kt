@@ -12,7 +12,6 @@ import net.corda.core.transactions.TransactionBuilder
 import com.template.states.YachtRef
 import com.template.states.YachtState
 import net.corda.core.contracts.Amount
-import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.utilities.ProgressTracker
@@ -52,46 +51,40 @@ object CreateYachtStateFlow{
             // Get a reference to the notary service on our network and our key pair.
             val notary = serviceHub.networkMapCache.getNotary(CordaX500Name.parse("O=Notary,L=London,C=GB"))
 
-            // Check if the owner of the respective yacht ref is the same as the proposed owner of the Yacht State
-//            val listYachtRefStateAndRefs = serviceHub.vaultService.queryBy(YachtRef::class.java).states
-//
-//            if (listYachtRefStateAndRefs.isEmpty()){
-//                return emptyList()
-//            } else {
-//                val filteredYachtStateAndRef = listYachtRefStateAndRefs.filter{
-//                    it.state.data.owner == owner &&
-//                            it.state.data.linearId == yachtLinearId
-//                }
-//            }
+            // Check if the owner and yachtLinearID of the Yacht Ref is the same as the proposed owner and yachtLinearID of the Yacht State
+            val isSameOwnerAndYachtLinearIdAsYachtRef =
+                serviceHub.vaultService.queryBy(YachtRef::class.java).states.any { it.state.data.owner == owner && it.state.data.linearId == yachtLinearId }
             // Check that the owner of Yacht Ref matches the proposed owner of the Yacht State
+            val isOwnerSameAsOurIdentity = ourIdentity == owner
 
-            // Compose the output state
-            val outputState = YachtState(owner, price, forSale, yachtLinearId)
+            if (!isSameOwnerAndYachtLinearIdAsYachtRef && !isOwnerSameAsOurIdentity) {
+                throw FlowException("You are not permitted to create a Yacht State for this Yacht.")
+            } else {
+                // Compose the output state
+                val outputState = YachtState(owner, price, forSale, yachtLinearId)
 
-            // Create a new TransactionBuilder object.
-            progressTracker.currentStep = GENERATING_TRANSACTION
-            val builder = TransactionBuilder(notary)
-                .addOutputState(outputState)
-                .addCommand(YachtContract.Commands.Create(), listOf(owner.owningKey))
+                // Create a new TransactionBuilder object.
+                progressTracker.currentStep = GENERATING_TRANSACTION
+                val builder = TransactionBuilder(notary)
+                    .addOutputState(outputState)
+                    .addCommand(YachtContract.Commands.Create(), listOf(owner.owningKey))
 
-            // Verify the transaction
-            builder.verify(serviceHub)
-            // Sign the transaction (issuer)
-            progressTracker.currentStep = SIGNING_TRANSACTION
-            val stx = serviceHub.signInitialTransaction(builder)
+                // Verify the transaction
+                builder.verify(serviceHub)
+                // Sign the transaction (issuer)
+                progressTracker.currentStep = SIGNING_TRANSACTION
+                val stx = serviceHub.signInitialTransaction(builder)
 
-            // Notarise the transaction and record the state in the ledger
-            progressTracker.currentStep = FINALISING_TRANSACTION
-            return subFlow(
-                FinalityFlow(
-                    transaction = stx,
-                    sessions = listOf(),
-                    progressTracker = FINALISING_TRANSACTION.childProgressTracker()
+                // Notarise the transaction and record the state in the ledger
+                progressTracker.currentStep = FINALISING_TRANSACTION
+                return subFlow(
+                    FinalityFlow(
+                        transaction = stx,
+                        sessions = listOf(),
+                        progressTracker = FINALISING_TRANSACTION.childProgressTracker()
+                    )
                 )
-            )
+            }
         }
-
-
     }
-
 }

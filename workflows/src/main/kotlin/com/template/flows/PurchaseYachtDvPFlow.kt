@@ -38,50 +38,55 @@ class PurchaseYachtDvPFlow {
             val filteredYachtStateAndRef = yachtStateAndRefs.filter { it.state.data.linearId == this.yachtLinearId }[0]
             val yachtState = filteredYachtStateAndRef.state.data
 
-            // Use the withNewOwner() of the Ownable state, get the command and the output state which will be used in the transaction
-            val commandAndState = yachtState.withNewOwner(newOwner)
+            // Check that the owner of the respective Yacht State is the Party initialising this flow
+            if (yachtState.owner != ourIdentity){
+                throw FlowException("You are not permitted to initiate a Purchase Yacht Flow for this Yacht.")
+            } else {
+                // Use the withNewOwner() of the Ownable state, get the command and the output state which will be used in the transaction
+                val commandAndState = yachtState.withNewOwner(newOwner)
 
-            // Create the transaction builder
-            // Obtain a reference from a notary
-            val notary = serviceHub.networkMapCache.getNotary(CordaX500Name.parse("O=Notary,L=London,C=GB"))
+                // Create the transaction builder
+                // Obtain a reference from a notary
+                val notary = serviceHub.networkMapCache.getNotary(CordaX500Name.parse("O=Notary,L=London,C=GB"))
 
-            val txBuilderWithNotary = TransactionBuilder(notary)
+                val txBuilderWithNotary = TransactionBuilder(notary)
 
-            // Generate spend for the cash
-            val txAndKeysPair = CashUtils.generateSpend(
-                serviceHub, txBuilderWithNotary,
-                price, ourIdentityAndCert,
-                yachtState.owner!!, emptySet()
-            )
+                // Generate spend for the cash
+                val txAndKeysPair = CashUtils.generateSpend(
+                    serviceHub, txBuilderWithNotary,
+                    price, ourIdentityAndCert,
+                    yachtState.owner!!, emptySet()
+                )
 
-            val txBuilder = txAndKeysPair.first
+                val txBuilder = txAndKeysPair.first
 
-            txBuilder.addInputState(filteredYachtStateAndRef)
-                .addOutputState(commandAndState.ownableState)
-                .addCommand(commandAndState.command, listOf(yachtState.owner.owningKey, newOwner.owningKey))
+                txBuilder.addInputState(filteredYachtStateAndRef)
+                    .addOutputState(commandAndState.ownableState)
+                    .addCommand(commandAndState.command, listOf(yachtState.owner.owningKey, newOwner.owningKey))
 
-            txBuilder.verify(serviceHub)
+                txBuilder.verify(serviceHub)
 
-            // Sign the transaction with new keyPair generated for Cash and the node's owningKey
-            val keysToSign = txAndKeysPair.second.plus(ourIdentity.owningKey)
-            val stx = serviceHub.signInitialTransaction(txBuilder, keysToSign)
+                // Sign the transaction with new keyPair generated for Cash and the node's owningKey
+                val keysToSign = txAndKeysPair.second.plus(ourIdentity.owningKey)
+                val stx = serviceHub.signInitialTransaction(txBuilder, keysToSign)
 
-            // Collect counterparty signature
-            val buyerFlow = initiateFlow(yachtState.owner!!)
-            val ftx = subFlow(CollectSignaturesFlow(stx, listOf(buyerFlow)))
-            return subFlow(FinalityFlow(ftx, (buyerFlow)))
+                // Collect counterparty signature
+                val buyerFlow = initiateFlow(yachtState.owner!!)
+                val ftx = subFlow(CollectSignaturesFlow(stx, listOf(buyerFlow)))
+                return subFlow(FinalityFlow(ftx, (buyerFlow)))
+            }
         }
-    }
-    @InitiatedBy(Initiator::class)
-    class Responder(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
-        @Suspendable
-        override fun call():SignedTransaction {
-            subFlow(object : SignTransactionFlow(counterpartySession) {
-                @Throws(FlowException::class)
-                override fun checkTransaction(stx: SignedTransaction) {
-                }
-            })
-            return subFlow(ReceiveFinalityFlow(counterpartySession))
+        @InitiatedBy(Initiator::class)
+        class Responder(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
+            @Suspendable
+            override fun call():SignedTransaction {
+                subFlow(object : SignTransactionFlow(counterpartySession) {
+                    @Throws(FlowException::class)
+                    override fun checkTransaction(stx: SignedTransaction) {
+                    }
+                })
+                return subFlow(ReceiveFinalityFlow(counterpartySession))
+            }
         }
     }
 }
