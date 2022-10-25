@@ -1,6 +1,7 @@
 package com.template
 
 import com.template.flows.CreateYachtStateFlow
+import com.template.flows.IssueFiatCurrencyFlow
 import com.template.flows.IssueYachtRefFlow
 import com.template.flows.PurchaseYachtDvPFlow
 import com.template.states.YachtRef
@@ -102,6 +103,18 @@ class FlowTests {
         Assert.assertEquals(forSale, createdYachtStateData.forSale)
         Assert.assertEquals(issuedYachtRefData.linearId, createdYachtStateData.linearId)
     }
+
+    /* ISSUE FIAT CURRENCY FLOW */
+    @Test
+    fun issueFiatCurrencyFlowIssuesTheCorrectAmountOfTheCorrectCurrencyToTheRelevantParty(){
+        val issueFiatCurrencyFlow = IssueFiatCurrencyFlow("GBP", 6000000, yachtOwner1.info.legalIdentities.first())
+        val issueFiatCurrencyFuture = bank.startFlow(issueFiatCurrencyFlow)
+        network.runNetwork()
+
+        val issuedFiatCurrencyData = issueFiatCurrencyFuture.get()
+        Assert.assertEquals("", issuedFiatCurrencyData)
+    }
+
 
     /* PURCHASE YACHT STATE FLOW */
 //    @Test

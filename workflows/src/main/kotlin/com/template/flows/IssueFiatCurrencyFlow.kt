@@ -18,13 +18,13 @@ import net.corda.core.contracts.Amount
 
 @StartableByRPC
 class IssueFiatCurrencyFlow(
-    val currency: String,
-    val amount: Long,
-    val recipient: Party): FlowLogic<String>(){
+    private val currency: String,
+    private val amount: Long,
+    private val recipient: Party) : FlowLogic<String>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): String {
+    override fun call():String {
         /* Create an instance of the fiat currency token */
         val token = FiatCurrency.Companion.getInstance(currency)
 
@@ -36,6 +36,5 @@ class IssueFiatCurrencyFlow(
 
         val stx = subFlow(IssueTokens(listOf(fungibleToken), listOf(recipient)))
         return "Issued $amount $currency token(s) to ${recipient.name.organisation}"
-    }
     }
 }
