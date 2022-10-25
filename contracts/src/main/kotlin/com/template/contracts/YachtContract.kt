@@ -28,7 +28,7 @@ class YachtContract : Contract {
             is Commands.Create -> requireThat {
                 "No inputs should be consumed when creating a new YachtState.".using(inputs.isEmpty())
                 "There should only be one output when creating a new YachtState.".using(outputs.size == 1)
-                "The owner must be a required signer".using(command.signers.contains(firstOutput.owner.owningKey))
+                "The issuer and the owner must be required signers".using(command.signers.containsAll(listOf(firstOutput.issuer.owningKey, firstOutput.owner.owningKey)))
             }
             is Commands.Purchase -> requireThat{
                 val firstInput = tx.inputsOfType<YachtState>()[0]
