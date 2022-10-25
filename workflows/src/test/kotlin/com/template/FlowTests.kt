@@ -32,7 +32,9 @@ class FlowTests {
     fun setup() {
         network = MockNetwork(MockNetworkParameters(cordappsForAllNodes = listOf(
                 TestCordapp.findCordapp("com.template.contracts"),
-                TestCordapp.findCordapp("com.template.flows")
+                TestCordapp.findCordapp("com.template.flows"),
+                TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts"),
+                TestCordapp.findCordapp("com.r3.corda.lib.tokens.workflows")
         ),
             notarySpecs = listOf(MockNetworkNotarySpec(CordaX500Name("Notary","London","GB")))))
         yachtIssuer = network.createPartyNode()
@@ -112,7 +114,7 @@ class FlowTests {
         network.runNetwork()
 
         val issuedFiatCurrencyData = issueFiatCurrencyFuture.get()
-        Assert.assertEquals("", issuedFiatCurrencyData)
+        Assert.assertEquals("Issued 6000000 GBP token(s) to Mock Company 2", issuedFiatCurrencyData)
     }
 
 
