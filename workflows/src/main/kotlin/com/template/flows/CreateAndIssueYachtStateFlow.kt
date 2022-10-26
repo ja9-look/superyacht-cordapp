@@ -65,52 +65,54 @@ object CreateAndIssueYachtStateFlow{
             // Get a reference to the notary service on our network and our key pair.
             val notary = serviceHub.networkMapCache.getNotary(CordaX500Name.parse("O=Notary,L=London,C=GB"))
 
-            // Create a new TransactionBuilder object.
-            progressTracker.currentStep = GENERATING_TRANSACTION
+//            if (!isOwnerSameAsOurIdentity) {
+//                throw FlowException("You are not permitted to create a Yacht State for this Yacht.")
+//            } else {
+                // Compose the output state
+                val outputState = YachtState(ourIdentity, owner, name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, linearId, listOf(owner))
 
-            // Compose the output state
-            val outputState = YachtState(ourIdentity, owner, name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, linearId, listOf(ourIdentity, owner))
+                // Create a new TransactionBuilder object.
+                progressTracker.currentStep = GENERATING_TRANSACTION
+                val builder = TransactionBuilder(notary)
+                    .addOutputState(outputState)
+                    .addCommand(YachtContract.Commands.Create(), listOf(owner.owningKey))
 
-            val builder = TransactionBuilder(notary)
-                .addOutputState(outputState)
-                .addCommand(YachtContract.Commands.Create(), listOf(ourIdentity.owningKey, owner.owningKey))
+                // Verify the transaction
+                builder.verify(serviceHub)
+                // Sign the transaction (issuer)
+                progressTracker.currentStep = SIGNING_TRANSACTION
+                val partSignedTx = serviceHub.signInitialTransaction(builder)
 
-            // Verify the transaction
-            builder.verify(serviceHub)
-            // Sign the transaction (issuer)
-            progressTracker.currentStep = SIGNING_TRANSACTION
-            val partSignedTx = serviceHub.signInitialTransaction(builder)
+                // Send the state to the  counterparty (owner) and receive it back with their signature
+                progressTracker.currentStep = GATHERING_SIGS
+                val counterpartySession = initiateFlow(owner)
+                val fullySignedTx = subFlow(CollectSignaturesFlow(partSignedTx, setOf(counterpartySession), GATHERING_SIGS.childProgressTracker()))
 
-            // Send the state to the  counterparty (owner) and receive it back with their signature
-            progressTracker.currentStep = GATHERING_SIGS
-            val counterpartySession = initiateFlow(owner)
-            val fullySignedTx = subFlow(CollectSignaturesFlow(partSignedTx, setOf(counterpartySession), GATHERING_SIGS.childProgressTracker()))
-
-            // Notarise the transaction and record the state in the ledger
-            progressTracker.currentStep = FINALISING_TRANSACTION
-            return subFlow(
-                FinalityFlow(
-                    transaction = fullySignedTx,
-                    sessions = listOf(counterpartySession),
-                    progressTracker = FINALISING_TRANSACTION.childProgressTracker()
+                // Notarise the transaction and record the state in the ledger
+                progressTracker.currentStep = FINALISING_TRANSACTION
+                return subFlow(
+                    FinalityFlow(
+                        transaction = fullySignedTx,
+                        sessions = listOf(counterpartySession),
+                        progressTracker = FINALISING_TRANSACTION.childProgressTracker()
+                    )
                 )
-            )
-        }
-    }
-    @InitiatedBy(Initiator::class)
-    class Responder(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
-        @Suspendable
-        override fun call(): SignedTransaction {
-            val signTransactionFlow = object: SignTransactionFlow(counterpartySession) {
-                override fun checkTransaction(stx: SignedTransaction) = requireThat {
-                    val output = stx.tx.outputs.single().data
-                    "This must be an create and issue yacht ref transaction." using (output is YachtState)
+            }
+            @InitiatedBy(Initiator::class)
+            class Responder(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
+                @Suspendable
+                override fun call(): SignedTransaction {
+                    val signTransactionFlow = object: SignTransactionFlow(counterpartySession) {
+                        override fun checkTransaction(stx: SignedTransaction) = requireThat {
+                            val output = stx.tx.outputs.single().data
+                            "This must be an create and issue yacht state transaction." using (output is YachtState)
+                        }
+                    }
+                    val txId = subFlow(signTransactionFlow).id
+
+                    return subFlow(ReceiveFinalityFlow(counterpartySession, expectedTxId = txId))
                 }
             }
-            val txId = subFlow(signTransactionFlow).id
-
-            return subFlow(ReceiveFinalityFlow(counterpartySession, expectedTxId = txId))
         }
 
-    }
 }

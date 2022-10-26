@@ -35,7 +35,7 @@ class ContractTests {
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         true,
         UniqueIdentifier(),
-        listOf(boatIntl.party, alice.party)
+        listOf(alice.party)
     )
 
     private val mockYachtStateBob = YachtState(
@@ -53,7 +53,7 @@ class ContractTests {
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         true,
         UniqueIdentifier(),
-        listOf(boatIntl.party, bob.party)
+        listOf(bob.party)
     )
 
     private val mockYachtStateNFS = YachtState(
@@ -71,7 +71,7 @@ class ContractTests {
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         false,
         UniqueIdentifier(),
-        listOf(boatIntl.party, bob.party)
+        listOf(bob.party)
     )
 
     /* YACHT STATE TESTS */
@@ -88,12 +88,12 @@ class ContractTests {
             transaction {
                 input(YachtContract.ID, mockYachtState)
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 fails()
             }
             transaction {
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 verifies()
             }
         }
@@ -105,12 +105,12 @@ class ContractTests {
             transaction{
                 output(YachtContract.ID, mockYachtState)
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 fails()
             }
             transaction{
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 verifies()
             }
         }
@@ -121,34 +121,34 @@ class ContractTests {
         ledgerServices.ledger{
             transaction{
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 fails()
             }
             transaction{
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 verifies()
             }
         }
     }
 
     @Test
-    fun yachtContractCreateCommandMustHaveTheIssuerAndTheOwnerAsRequiredSigners(){
+    fun yachtContractCreateCommandMustHaveTheOwnerAsRequiredSigners(){
         ledgerServices.ledger{
             transaction{
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(alice.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(bob.publicKey), YachtContract.Commands.Create())
                 fails()
             }
             transaction{
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(bob.publicKey, bob.publicKey), YachtContract.Commands.Create())
+                command(listOf(boatIntl.publicKey), YachtContract.Commands.Create())
                 fails()
             }
             transaction{
                 output(YachtContract.ID, mockYachtState)
-                command(listOf(boatIntl.publicKey, alice.publicKey), YachtContract.Commands.Create())
+                command(listOf(alice.publicKey), YachtContract.Commands.Create())
                 verifies()
             }
         }

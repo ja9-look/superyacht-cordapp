@@ -28,16 +28,16 @@ class YachtContract : Contract {
             is Commands.Create -> requireThat {
                 "No inputs should be consumed when creating a new YachtState.".using(inputs.isEmpty())
                 "There should only be one output when creating a new YachtState.".using(outputs.size == 1)
-                "The issuer and the owner must be required signers".using(command.signers.containsAll(listOf(firstOutput.issuer.owningKey, firstOutput.owner.owningKey)))
+                "The owner must be required signers".using(command.signers.contains(firstOutput.owner.owningKey))
             }
             is Commands.Purchase -> requireThat{
                 val firstInput = tx.inputsOfType<YachtState>()[0]
-                "There should be one input when purchasing a Yacht.".using(inputs.size == 1)
-                "There should be one output when purchasing a Yacht.".using(outputs.size == 1)
-                "The output must be a YachtState.".using(outputs.first() is YachtState)
-                "The yacht must be marked as for sale.".using(firstInput.forSale)
-                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstInput.participants.map {it.owningKey}))
-                "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
+//                "There should be two input when purchasing a Yacht.".using(inputs.size == 2)
+////                "There should be one output when purchasing a Yacht.".using(outputs.size == 1)
+////                "The output must be a YachtState.".using(outputs.first() is YachtState)
+//                "The yacht must be marked as for sale.".using(firstInput.forSale)
+//                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstInput.participants.map {it.owningKey}))
+//                "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
             }
         }
     }

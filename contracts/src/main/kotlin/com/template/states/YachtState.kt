@@ -26,7 +26,7 @@ data class YachtState(
     val price: Amount<Currency>,
     val forSale: Boolean,
     override val linearId: UniqueIdentifier,
-    override val participants: List<AbstractParty> = listOf(issuer, owner)
+    override val participants: List<AbstractParty> = listOf(owner)
 ) : OwnableState, LinearState {
     override fun withNewOwner(newOwner: AbstractParty): CommandAndState {
         return CommandAndState(
@@ -46,7 +46,7 @@ data class YachtState(
                 this.price,
                 this.forSale,
                 this.linearId,
-                listOf(this.issuer, this.owner, newOwner)
+                listOf(newOwner)
             )
         )
     }

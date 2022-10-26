@@ -34,8 +34,6 @@ class PurchaseYachtFlow {
         private val newOwner: AbstractParty,
         private val yachtLinearId: UniqueIdentifier
     ) : FlowLogic<String>() {
-        override val progressTracker = ProgressTracker()
-
         @Suspendable
         override fun call(): String {
             // Query to vault to find the corresponding YachtState
@@ -70,19 +68,20 @@ class PurchaseYachtFlow {
                     .addOutputState(commandAndState.ownableState)
                     .addCommand(commandAndState.command, listOf(ourIdentity.owningKey))
 
+
                 // Sign the transaction with ourIdentity's private keys
-                val initialSignedTx = serviceHub.signInitialTransaction(txBuilder)
+                val partSignedTx = serviceHub.signInitialTransaction(txBuilder)
 
                 /* Call the CollectSignaturesFlow to receive signature of the buyer */
-                val ftx= subFlow(CollectSignaturesFlow(initialSignedTx, listOf(counterpartySession)))
+                val fullySignedTx= subFlow(CollectSignaturesFlow(partSignedTx, setOf(counterpartySession)))
 
                 /* Call finality flow to notarise the transaction */
-                val stx = subFlow(FinalityFlow(ftx, listOf(counterpartySession)))
+                val stx = subFlow(FinalityFlow(fullySignedTx, setOf(counterpartySession)))
 
                 /* Distribution list is a list of identities that should receive updates. For this mechanism to behave correctly we call the UpdateDistributionListFlow flow */
                 subFlow(UpdateDistributionListFlow(stx))
 
-                return ("\nThe yacht is sold to " + newOwner + "\nTransaction ID: " + stx.id)
+                return ("The yacht is sold to $newOwner")
                 }
             }
         }

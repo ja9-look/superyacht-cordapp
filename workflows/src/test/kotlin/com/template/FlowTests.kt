@@ -12,8 +12,6 @@ import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
 import org.junit.Assert
-import java.math.BigDecimal
-import java.util.Currency
 import java.util.Date
 
 
@@ -32,7 +30,7 @@ class FlowTests {
                 TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts"),
                 TestCordapp.findCordapp("com.r3.corda.lib.tokens.workflows")
         ),
-            notarySpecs = listOf(MockNetworkNotarySpec(CordaX500Name("Notary","London","GB")))))
+        notarySpecs = listOf(MockNetworkNotarySpec(CordaX500Name("Notary","London","GB")))))
         yachtIssuer = network.createPartyNode()
         yachtOwner1 = network.createPartyNode()
         yachtOwner2 = network.createPartyNode()
@@ -40,7 +38,7 @@ class FlowTests {
 
         // For real nodes this happens automatically, but we have to manually register the flow for tests.
         listOf(yachtIssuer, yachtOwner1, yachtOwner2, bank).forEach { it.registerInitiatedFlow(
-            CreateAndIssueYachtStateFlow.Responder::class.java) }
+            CreateAndIssueYachtStateFlow.Initiator.Responder::class.java) }
         network.runNetwork()
     }
 
@@ -62,7 +60,7 @@ class FlowTests {
 
     /* CREATE YACHT STATE FLOW */
     @Test
-    fun createYachtStateFlowCreateYachtStateSuccessfullyWithExpectedOwnerPriceForSaleAndLinearId(){
+    fun createAndIssueYachtStateFlowCreatesYachtStateSuccessfullyWithExpectedOwnerPriceForSaleAndLinearId(){
 
         val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, UniqueIdentifier())
         val createYachtStateFuture = yachtIssuer.startFlow(createYachtStateFlow)
@@ -96,12 +94,10 @@ class FlowTests {
         Assert.assertEquals("Issued 6000000 USD token(s) to Mock Company 2", issuedFiatCurrencyData)
     }
 
-
     /* PURCHASE YACHT STATE FLOW */
     @Test
     fun purchaseYachtFlowUpdatesTheYachtStateWithNewOwner(){
         // Create Yacht State
-
         val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, UniqueIdentifier())
         val createYachtStateFuture = yachtIssuer.startFlow(createYachtStateFlow)
         network.runNetwork()
@@ -111,22 +107,19 @@ class FlowTests {
         Assert.assertEquals(yachtOwner1.info.legalIdentities.first(), createdYachtStateData.owner)
 
         // Issue Fiat Currency To Buyer
-        val issueFiatCurrencyFlow = IssueFiatCurrencyFlow("USD", 6000000, yachtOwner2.info.legalIdentities.first())
+        val issueFiatCurrencyFlow = IssueFiatCurrencyFlow("USD", 600000000, yachtOwner2.info.legalIdentities.first())
         val issueFiatCurrencyFuture = bank.startFlow(issueFiatCurrencyFlow)
         network.runNetwork()
 
         val issuedFiatCurrencyData = issueFiatCurrencyFuture.get()
-        Assert.assertEquals("Issued 6000000 USD token(s) to Mock Company 3", issuedFiatCurrencyData)
+        Assert.assertEquals("Issued 600000000 USD token(s) to Mock Company 3", issuedFiatCurrencyData)
 
         // Purchase Yacht State
-
         val purchaseYachtStateFlow = PurchaseYachtFlow.Initiator(yachtOwner2.info.legalIdentities.first(), createdYachtStateData.linearId)
         val purchaseYachtDvPFlowFuture = yachtOwner1.startFlow(purchaseYachtStateFlow)
         network.runNetwork()
 
-//        val purchasedYachtDvPData = purchaseYachtDvPFlowFuture.get()
-
         // Check that the new owner is correct
-        Assert.assertEquals("", purchaseYachtDvPFlowFuture.get())
+        Assert.assertEquals("The yacht is sold to O=Mock Company 3, L=London, C=GB", purchaseYachtDvPFlowFuture.get())
     }
 }

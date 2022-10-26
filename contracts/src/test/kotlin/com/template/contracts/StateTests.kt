@@ -35,7 +35,7 @@ class StateTests {
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         true,
         UniqueIdentifier(),
-        listOf(boatIntl.party, alice.party)
+        listOf(alice.party)
     )
 
     private val mockYachtState1 = YachtState(
@@ -53,7 +53,7 @@ class StateTests {
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         true,
         UniqueIdentifier(),
-        listOf(boatIntl.party, bob.party)
+        listOf(bob.party)
     )
 
     /* YACHT STATE TESTS */
@@ -92,9 +92,9 @@ class StateTests {
         assertEquals(YachtState::class.java.getDeclaredField("linearId").type, UniqueIdentifier::class.java)
     }
     @Test
-    fun yachtStateAlwaysHasTheIssuerAndTheOwnerAsParticipants(){
-        assertTrue(mockYachtState.participants.containsAll(listOf(boatIntl.party, alice.party)))
-        assertTrue(mockYachtState1.participants.containsAll(listOf(boatIntl.party, bob.party)))
+    fun yachtStateAlwaysHasTheOwnerAsParticipants(){
+        assertTrue(mockYachtState.participants.containsAll(listOf(alice.party)))
+        assertTrue(mockYachtState1.participants.containsAll(listOf(bob.party)))
     }
 
 }
