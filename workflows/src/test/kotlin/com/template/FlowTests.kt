@@ -111,12 +111,12 @@ class FlowTests {
         Assert.assertEquals(yachtOwner1.info.legalIdentities.first(), createdYachtStateData.owner)
 
         // Issue Fiat Currency To Buyer
-        val issueFiatCurrencyFlow = IssueFiatCurrencyFlow("USD", 6000000, yachtOwner1.info.legalIdentities.first())
+        val issueFiatCurrencyFlow = IssueFiatCurrencyFlow("USD", 6000000, yachtOwner2.info.legalIdentities.first())
         val issueFiatCurrencyFuture = bank.startFlow(issueFiatCurrencyFlow)
         network.runNetwork()
 
         val issuedFiatCurrencyData = issueFiatCurrencyFuture.get()
-        Assert.assertEquals("Issued 6000000 USD token(s) to Mock Company 2", issuedFiatCurrencyData)
+        Assert.assertEquals("Issued 6000000 USD token(s) to Mock Company 3", issuedFiatCurrencyData)
 
         // Purchase Yacht State
 
@@ -127,6 +127,6 @@ class FlowTests {
 //        val purchasedYachtDvPData = purchaseYachtDvPFlowFuture.get()
 
         // Check that the new owner is correct
-        Assert.assertEquals("", purchaseYachtDvPFlowFuture)
+        Assert.assertEquals("", purchaseYachtDvPFlowFuture.get())
     }
 }
