@@ -65,7 +65,7 @@ object CreateAndIssueYachtStateFlow{
             // Get a reference to the notary service on our network and our key pair.
             val notary = serviceHub.networkMapCache.getNotary(CordaX500Name.parse("O=Notary,L=London,C=GB"))
 
-//            if (!isOwnerSameAsOurIdentity) {
+//            if (!isInitiatorAnAuthorisedIssuer) {
 //                throw FlowException("You are not permitted to create a Yacht State for this Yacht.")
 //            } else {
                 // Compose the output state

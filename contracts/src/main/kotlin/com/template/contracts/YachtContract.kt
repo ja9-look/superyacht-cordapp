@@ -32,12 +32,10 @@ class YachtContract : Contract {
             }
             is Commands.Purchase -> requireThat{
                 val firstInput = tx.inputsOfType<YachtState>()[0]
-//                "There should be two input when purchasing a Yacht.".using(inputs.size == 2)
-////                "There should be one output when purchasing a Yacht.".using(outputs.size == 1)
-////                "The output must be a YachtState.".using(outputs.first() is YachtState)
-//                "The yacht must be marked as for sale.".using(firstInput.forSale)
-//                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstInput.participants.map {it.owningKey}))
-//                "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
+                "There should be two input when purchasing a Yacht.".using(inputs.size == 2)
+                "The yacht must be marked as for sale.".using(firstInput.forSale)
+                "The seller and the buyer must be required signers.".using(command.signers.containsAll(firstInput.participants.map {it.owningKey}))
+                "The seller and the buyer cannot be the same entity.".using(firstInput.owner != firstOutput.owner)
             }
         }
     }
