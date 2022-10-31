@@ -62,7 +62,7 @@ class FlowTests {
     @Test
     fun createAndIssueYachtStateFlowCreatesYachtStateSuccessfullyWithExpectedOwnerPriceForSaleAndLinearId(){
 
-        val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, UniqueIdentifier())
+        val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale)
         val createYachtStateFuture = yachtIssuer.startFlow(createYachtStateFlow)
         network.runNetwork()
 
@@ -76,7 +76,7 @@ class FlowTests {
 
     @Test
         fun createAndIssueYachtStateFlowCreatesOutputOfExpectedTypeYachtState() {
-        val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, UniqueIdentifier())
+        val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale)
         val createYachtStateFuture = yachtIssuer.startFlow(createYachtStateFlow)
         network.runNetwork()
 
@@ -98,7 +98,7 @@ class FlowTests {
     @Test
     fun purchaseYachtFlowUpdatesTheYachtStateWithNewOwner(){
         // Create Yacht State
-        val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, UniqueIdentifier())
+        val createYachtStateFlow = CreateAndIssueYachtStateFlow.Initiator(yachtOwner1.info.legalIdentities.first(), name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale)
         val createYachtStateFuture = yachtIssuer.startFlow(createYachtStateFlow)
         network.runNetwork()
 
@@ -115,7 +115,7 @@ class FlowTests {
         Assert.assertEquals("Issued 600000000 USD token(s) to Mock Company 3", issuedFiatCurrencyData)
 
         // Purchase Yacht State
-        val purchaseYachtStateFlow = PurchaseYachtFlow.Initiator(yachtOwner2.info.legalIdentities.first(), createdYachtStateData.linearId)
+        val purchaseYachtStateFlow = PurchaseYachtFlow.Initiator(yachtOwner2.info.legalIdentities.first(), createdYachtStateData.linearId.toString())
         val purchaseYachtDvPFlowFuture = yachtOwner1.startFlow(purchaseYachtStateFlow)
         network.runNetwork()
 

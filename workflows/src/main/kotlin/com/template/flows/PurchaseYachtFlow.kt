@@ -8,7 +8,6 @@ import com.r3.corda.lib.tokens.workflows.flows.move.addMoveTokens
 import com.r3.corda.lib.tokens.workflows.internal.flows.distribution.UpdateDistributionListFlow
 import net.corda.core.flows.*
 import net.corda.core.identity.*
-import net.corda.core.utilities.ProgressTracker
 
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -21,6 +20,7 @@ import net.corda.core.identity.AbstractParty
 import net.corda.core.node.services.queryBy
 import net.corda.core.utilities.unwrap
 import java.util.Currency
+import java.util.UUID
 
 
 // *********
@@ -32,13 +32,16 @@ class PurchaseYachtFlow {
     @StartableByRPC
     class Initiator(
         private val newOwner: AbstractParty,
-        private val yachtLinearId: UniqueIdentifier
+        private val yachtLinearId: String
     ) : FlowLogic<String>() {
         @Suspendable
         override fun call(): String {
+
+            val uniqueIdentifier = UniqueIdentifier.fromString(yachtLinearId)
+
             // Query to vault to find the corresponding YachtState
             val yachtStateAndRefs = serviceHub.vaultService.queryBy<YachtState>().states
-            val filteredYachtStateAndRef = yachtStateAndRefs.filter { it.state.data.linearId == this.yachtLinearId }[0]
+            val filteredYachtStateAndRef = yachtStateAndRefs.filter { it.state.data.linearId == uniqueIdentifier }[0]
             val yachtState = filteredYachtStateAndRef.state.data
 
             // Check that the owner of the respective Yacht State is the Party initialising this flow

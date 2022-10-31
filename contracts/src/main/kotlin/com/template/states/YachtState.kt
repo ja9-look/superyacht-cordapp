@@ -3,8 +3,8 @@ package com.template.states
 import com.template.contracts.YachtContract
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
-import net.corda.core.identity.Party
 import java.util.*
+
 
 // *********
 // * State *

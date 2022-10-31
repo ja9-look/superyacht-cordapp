@@ -18,7 +18,6 @@ import net.corda.core.utilities.ProgressTracker
 import java.util.Currency
 import java.util.Date
 
-
 // *********
 // * Flows *
 // *********
@@ -37,8 +36,7 @@ object CreateAndIssueYachtStateFlow{
         private val cruiseSpeed: Int,
         private val imageUrls: List<String>,
         private val price: Amount<Currency>,
-        private val forSale: Boolean,
-        private val linearId: UniqueIdentifier
+        private val forSale: Boolean
     ) : FlowLogic<SignedTransaction>() {
         companion object {
             object GENERATING_TRANSACTION : Step("Generating Transaction")
@@ -69,6 +67,7 @@ object CreateAndIssueYachtStateFlow{
 //                throw FlowException("You are not permitted to create a Yacht State for this Yacht.")
 //            } else {
                 // Compose the output state
+                val linearId = UniqueIdentifier()
                 val outputState = YachtState(ourIdentity, owner, name, type, length, builderName, yearOfBuild, grossTonnage, maxSpeed, cruiseSpeed, imageUrls, price, forSale, linearId, listOf(owner))
 
                 // Create a new TransactionBuilder object.
