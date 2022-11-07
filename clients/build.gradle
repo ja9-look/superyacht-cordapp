@@ -66,6 +66,6 @@ task runPartyAServer(type: JavaExec, dependsOn: assemble) {
 
 task runPartyBServer(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'.
+    main = 'com.template.webserver.ServerKt'
     args '--server.port=50011', '--config.rpc.host=localhost', '--config.rpc.port=10011', '--config.rpc.username=PartyB', '--config.rpc.password=test'
 }
