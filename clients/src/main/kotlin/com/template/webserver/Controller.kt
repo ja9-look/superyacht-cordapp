@@ -79,12 +79,22 @@ class Controller(rpc: NodeRPCConnection) {
      * The flow is invoked asynchronously. It returns a future when the flow's call() method returns.
      */
 
-//    @PostMapping(value = ["create-iou"], produces = [MediaType.TEXT_PLAIN_VALUE], headers = ["Content-Type=application/x-www-form-urlencoded"])
-//    fun createIOU(request: HttpServletRequest): ResponseEntity<String> {
-//        val iouValue = request.getParameter("iouValue").toInt()
-//        val partyName = request.getParameter("partyName")
-//        if(partyName == null){
-//            return ResponseEntity.badRequest().body("Query parameter 'partyName' must not be null.\n")
+//    @PostMapping(value = ["create-and-issue-yacht"], produces = [MediaType.TEXT_PLAIN_VALUE], headers = ["Content-Type=application/x-www-form-urlencoded"])
+//    fun CreateAndIssueYachtState(request: HttpServletRequest): ResponseEntity<String> {
+//        val owner = request.getParameter("owner")
+//        val name = request.getParameter("name")
+//        val type = request.getParameter("type")
+//        val length = request.getParameter("length").toDouble()
+//        val builderName = request.getParameter("builderName")
+//        val yearOfBuild = Date(request.getParameter("yearOfBuild"))
+//        val grossTonnage = request.getParameter("grossTonnage").toDouble()
+//        val maxSpeed = request.getParameter("maxSpeed").toInt()
+//        val cruiseSpeed = request.getParameter("cruiseSpeed").toInt()
+//        val imageUrls = request.getParameter("imageUrls")
+//        val price = request.getParameter("price")
+//        val forSale = request.getParameter("forSale")
+//        if(owner == null){
+//            return ResponseEntity.badRequest().body("Query parameter 'owner' must not be null.\n")
 //        }
 //        if (iouValue <= 0 ) {
 //            return ResponseEntity.badRequest().body("Query parameter 'iouValue' must be non-negative.\n")
