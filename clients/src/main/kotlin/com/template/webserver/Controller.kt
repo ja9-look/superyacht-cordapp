@@ -1,6 +1,6 @@
+package net.corda.samples.example.webserver
 
 import com.template.states.YachtState
-import com.template.webserver.NodeRPCConnection
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.vaultQueryBy
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 import net.corda.client.jackson.JacksonSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 
 val SERVICE_NAMES = listOf("Notary", "Network Map Service")
 
@@ -60,64 +61,37 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     /**
-     * Displays all IOU states that exist in the node's vault.
+     * Displays all Yacht states that exist in the node's vault.
      */
     @GetMapping(value = ["yachts"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getYachtStates() : ResponseEntity<List<StateAndRef<YachtState>>> {
+    fun getYachts() : ResponseEntity<List<StateAndRef<YachtState>>> {
         return ResponseEntity.ok(proxy.vaultQueryBy<YachtState>().states)
     }
 
     /**
-     * Initiates a flow to agree an IOU between two parties.
-     *
-     * Once the flow finishes it will have written the IOU to ledger. Both the lender and the borrower will be able to
-     * see it when calling /spring/api/ious on their respective nodes.
-     *
-     * This end-point takes a Party name parameter as part of the path. If the serving node can't find the other party
-     * in its network map cache, it will return an HTTP bad request.
-     *
-     * The flow is invoked asynchronously. It returns a future when the flow's call() method returns.
+     * Displays all the Token states that exist in the node's vault.
      */
-
-//    @PostMapping(value = ["create-and-issue-yacht"], produces = [MediaType.TEXT_PLAIN_VALUE], headers = ["Content-Type=application/x-www-form-urlencoded"])
-//    fun CreateAndIssueYachtState(request: HttpServletRequest): ResponseEntity<String> {
-//        val owner = request.getParameter("owner")
-//        val name = request.getParameter("name")
-//        val type = request.getParameter("type")
-//        val length = request.getParameter("length").toDouble()
-//        val builderName = request.getParameter("builderName")
-//        val yearOfBuild = Date(request.getParameter("yearOfBuild"))
-//        val grossTonnage = request.getParameter("grossTonnage").toDouble()
-//        val maxSpeed = request.getParameter("maxSpeed").toInt()
-//        val cruiseSpeed = request.getParameter("cruiseSpeed").toInt()
-//        val imageUrls = request.getParameter("imageUrls")
-//        val price = request.getParameter("price")
-//        val forSale = request.getParameter("forSale")
-//        if(owner == null){
-//            return ResponseEntity.badRequest().body("Query parameter 'owner' must not be null.\n")
-//        }
-//        if (iouValue <= 0 ) {
-//            return ResponseEntity.badRequest().body("Query parameter 'iouValue' must be non-negative.\n")
-//        }
-//        val partyX500Name = CordaX500Name.parse(partyName)
-//        val otherParty = proxy.wellKnownPartyFromX500Name(partyX500Name) ?: return ResponseEntity.badRequest().body("Party named $partyName cannot be found.\n")
-//
-//        return try {
-//            val signedTx = proxy.startTrackedFlow(::Initiator, iouValue, otherParty).returnValue.getOrThrow()
-//            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTx.id} committed to ledger.\n")
-//
-//        } catch (ex: Throwable) {
-//            logger.error(ex.message, ex)
-//            ResponseEntity.badRequest().body(ex.message!!)
-//        }
-//    }
+    @GetMapping(value = ["tokens"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getTokens() : ResponseEntity<List<StateAndRef<FungibleToken>>>{
+        return ResponseEntity.ok(proxy.vaultQueryBy<FungibleToken>().states)
+    }
 
     /**
-     * Displays all IOU states that only this node has been involved in.
+     * Displays all Yacht states that only this node has been involved in.
      */
     @GetMapping(value = ["my-yachts"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getMyYachts(): ResponseEntity<List<StateAndRef<YachtState>>> {
-        val myYachts = proxy.vaultQueryBy<YachtState>().states.filter { it.state.data.owner == proxy.nodeInfo().legalIdentities.first() }
+    fun getMyYachtss(): ResponseEntity<List<StateAndRef<YachtState>>> {
+        val myYachts = proxy.vaultQueryBy<YachtState>().states.filter { it.state.data.owner == (proxy.nodeInfo().legalIdentities.first()) }
         return ResponseEntity.ok(myYachts)
+    }
+
+
+    /**
+     * Displays all the Token states that this node is a holder of.
+     */
+    @GetMapping(value = ["my-tokens"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getMyTokens() : ResponseEntity<List<StateAndRef<FungibleToken>>>{
+        val myTokens = proxy.vaultQueryBy<FungibleToken>().states.filter { it.state.data.holder == (proxy.nodeInfo().legalIdentities.first()) }
+        return ResponseEntity.ok(myTokens)
     }
 }
