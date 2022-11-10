@@ -18,6 +18,7 @@ import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.AbstractParty
 import net.corda.core.node.services.queryBy
+import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.unwrap
 import java.util.Currency
 import java.util.UUID
@@ -34,6 +35,26 @@ class PurchaseYachtFlow {
         private val newOwner: AbstractParty,
         private val yachtLinearId: String
     ) : FlowLogic<String>() {
+        companion object {
+            object GENERATING_TRANSACTION : ProgressTracker.Step("Generating Transaction")
+            object SIGNING_TRANSACTION : ProgressTracker.Step("Signing transaction with our private key.")
+            object GATHERING_SIGS : ProgressTracker.Step("Gathering signature from buyer.") {
+                override fun childProgressTracker() = CollectSignaturesFlow.tracker()
+            }
+            object FINALISING_TRANSACTION : ProgressTracker.Step("Recording transaction.") {
+                override fun childProgressTracker() = FinalityFlow.tracker()
+            }
+
+            fun tracker() = ProgressTracker(
+                GENERATING_TRANSACTION,
+                SIGNING_TRANSACTION,
+                GATHERING_SIGS,
+                FINALISING_TRANSACTION
+            )
+        }
+
+        override val progressTracker = tracker()
+
         @Suspendable
         override fun call(): String {
 
@@ -67,19 +88,26 @@ class PurchaseYachtFlow {
                 // Create a fiat currency proposal for the Yacht
                 addMoveTokens(txBuilder, inputs, moneyReceived)
 
+                progressTracker.currentStep = GENERATING_TRANSACTION
                 txBuilder.addInputState(filteredYachtStateAndRef)
                     .addOutputState(commandAndState.ownableState)
                     .addCommand(commandAndState.command, listOf(ourIdentity.owningKey))
 
-
+                progressTracker.currentStep = SIGNING_TRANSACTION
                 // Sign the transaction with ourIdentity's private keys
                 val partSignedTx = serviceHub.signInitialTransaction(txBuilder)
 
+                progressTracker.currentStep = GATHERING_SIGS
                 /* Call the CollectSignaturesFlow to receive signature of the buyer */
                 val fullySignedTx= subFlow(CollectSignaturesFlow(partSignedTx, setOf(counterpartySession)))
 
+                progressTracker.currentStep = FINALISING_TRANSACTION
                 /* Call finality flow to notarise the transaction */
-                val stx = subFlow(FinalityFlow(fullySignedTx, setOf(counterpartySession)))
+                val stx = subFlow(FinalityFlow(
+                    transaction = fullySignedTx,
+                    sessions = listOf(counterpartySession),
+                    progressTracker = FINALISING_TRANSACTION.childProgressTracker()
+                ))
 
                 /* Distribution list is a list of identities that should receive updates. For this mechanism to behave correctly we call the UpdateDistributionListFlow flow */
                 subFlow(UpdateDistributionListFlow(stx))
