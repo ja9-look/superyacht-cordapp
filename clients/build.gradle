@@ -45,13 +45,13 @@ task runTestClient(type: JavaExec, dependsOn: assemble) {
 
 task runBankServer(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'
+    main = 'net.corda.samples.example.webserver.ServerKt'
     args '--server.port=50005', '--config.rpc.host=localhost', '--config.rpc.port=10005', '--config.rpc.username=Bank', '--config.rpc.password=test'
 }
 
 task runYachtIssuerServer(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'
+    main = 'net.corda.samples.example.webserver.ServerKt'
     args '--server.port=50007', '--config.rpc.host=localhost', '--config.rpc.port=10007', '--config.rpc.username=YachtIssuer', '--config.rpc.password=test'
 }
 

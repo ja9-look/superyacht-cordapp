@@ -9,6 +9,7 @@ import net.corda.core.identity.CordaX500Name
 import net.corda.testing.core.TestIdentity
 import org.junit.Test
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -27,7 +28,7 @@ class StateTests {
         "Motor Yacht",
         12.15,
         "Burgess",
-        Date(2008),
+        LocalDate.parse("2008"),
         17.06,
         15,
         12,
@@ -45,7 +46,7 @@ class StateTests {
         "Motor Yacht",
         12.15,
         "Burgess",
-        Date(2008),
+        LocalDate.parse("2008"),
         17.06,
         15,
         12,
@@ -79,7 +80,7 @@ class StateTests {
         YachtState::class.java.getDeclaredField("builderName")
         assertEquals(YachtState::class.java.getDeclaredField("builderName").type, String::class.java)
         YachtState::class.java.getDeclaredField("yearOfBuild")
-        assertEquals(YachtState::class.java.getDeclaredField("yearOfBuild").type, Date::class.java)
+        assertEquals(YachtState::class.java.getDeclaredField("yearOfBuild").type, LocalDate::class.java)
         YachtState::class.java.getDeclaredField("grossTonnage")
         assertEquals(YachtState::class.java.getDeclaredField("grossTonnage").type, Double::class.java)
         YachtState::class.java.getDeclaredField("maxSpeed")

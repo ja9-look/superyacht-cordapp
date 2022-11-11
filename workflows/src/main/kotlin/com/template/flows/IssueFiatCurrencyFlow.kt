@@ -11,6 +11,7 @@ import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.FinalityFlow
+import net.corda.core.transactions.SignedTransaction
 
 
 // *********
@@ -21,7 +22,7 @@ import net.corda.core.flows.FinalityFlow
 class IssueFiatCurrencyFlow(
     private val currency: String,
     private val amount: Long,
-    private val recipient: Party) : FlowLogic<String>() {
+    private val recipient: Party) : FlowLogic<SignedTransaction>() {
     companion object {
         object CREATE_FIAT_CURRENCY_TOKEN : ProgressTracker.Step("Create an instance of the fiat currency token.")
         object CREATE_ISSUE_TOKEN_TYPE : ProgressTracker.Step("Create an instance of IssuedTokenType for the fiat currency.")
@@ -41,7 +42,7 @@ class IssueFiatCurrencyFlow(
     override val progressTracker = tracker()
 
     @Suspendable
-    override fun call():String {
+    override fun call():SignedTransaction {
         progressTracker.currentStep = CREATE_FIAT_CURRENCY_TOKEN
         /* Create an instance of the fiat currency token */
         val token = FiatCurrency.Companion.getInstance(currency)
@@ -55,7 +56,6 @@ class IssueFiatCurrencyFlow(
         val fungibleToken = FungibleToken(Amount(amount,issuedTokenType),recipient)
 
         progressTracker.currentStep = FINALISING_TRANSACTION
-        val stx = subFlow(IssueTokens(listOf(fungibleToken), listOf(recipient)))
-        return "Issued $amount $currency token(s) to ${recipient.name.organisation}"
+        return subFlow(IssueTokens(listOf(fungibleToken), listOf(recipient)))
     }
 }
