@@ -25,15 +25,15 @@ class CreateAndIssueYachtStateFlow {
     @InitiatingFlow
     @StartableByRPC
     class CreateAndIssueYachtStateFlowInitiator(
-    private val owner: Party,
-    private val name: String,
-    private val type: String,
-    private val length: Double,
-    private val builderName: String,
-    private val yearOfBuild: String,
-    private val amount: Long,
-    private val currency: String,
-    private val forSale: Boolean
+        private val owner: Party,
+        private val name: String,
+        private val type: String,
+        private val length: Double,
+        private val builderName: String,
+        private val yearOfBuild: Int,
+        private val amount: Long,
+        private val currency: String,
+        private val forSale: Boolean
     ) : FlowLogic<SignedTransaction>() {
         companion object {
             object GENERATING_TRANSACTION : Step("Generating Transaction")

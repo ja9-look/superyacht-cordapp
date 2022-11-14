@@ -16,7 +16,6 @@ import com.template.flows.CreateAndIssueYachtStateFlow.CreateAndIssueYachtStateF
 import com.template.flows.IssueFiatCurrencyFlow
 import com.template.flows.PurchaseYachtFlow.PurchaseYachtFlowInitiator
 import net.corda.core.contracts.Amount
-import net.corda.core.messaging.RPCOps
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.utilities.getOrThrow
 import org.springframework.http.HttpStatus
@@ -141,23 +140,16 @@ class Controller(rpc: NodeRPCConnection) {
         val type = request.getParameter("type")
         val length = request.getParameter("length").toDouble()
         val builderName = request.getParameter("builderName")
-        val yearOfBuild = request.getParameter("Date")
+        val yearOfBuild = request.getParameter("yearOfBuild").toInt()
         val amount = request.getParameter("amount").toLong()
         val currency = request.getParameter("currency")
         val forSale = request.getParameter("forSale").toBoolean()
 
         val yachtOwner = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(owner)) ?: throw IllegalArgumentException("Unknown owner name.")
-        val params = listOf(owner, name, type, length, builderName, yearOfBuild, Amount(amount.toLong() * 100, Currency.getInstance(currency)), forSale)
-        val nullValuesInParams = params.filter { it == null }
-        // Check if any of the provided values are null or empty
-        if (nullValuesInParams.isNotEmpty()){
-            throw IllegalArgumentException("Please ensure that all provided fields are valid.")
-        }
-
 
         // Create a new Yacht state using the parameters given.
         return try {
-            val result = proxy.startTrackedFlow(::CreateAndIssueYachtStateFlowInitiator, yachtOwner, name, type, length, builderName, yearOfBuild, amount, currency, forSale).returnValue.getOrThrow()
+            val result = proxy.startTrackedFlowDynamic(CreateAndIssueYachtStateFlowInitiator::class.java, yachtOwner, name, type, length, builderName, yearOfBuild, amount, currency, forSale).returnValue.getOrThrow()
             ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body("Transaction id ${result.id} committed to ledger.\"The yacht's owner is $owner\"")
@@ -173,7 +165,8 @@ class Controller(rpc: NodeRPCConnection) {
     /**
      * Initiates a flow to allow a Party (yacht buyer) to purchase a yacht in exchange for a token paid to another Party (yacht owner).
      * Example Request: curl -X PUT "http://localhost:50005/issue-token?amount=100000&currency=USD&recipient=O=PartyB,L=New%20York,C=US"
-     */    @PutMapping (value = ["purchase-yacht"], produces = [MediaType.TEXT_PLAIN_VALUE])
+     */
+    @PutMapping (value = ["purchase-yacht"], produces = [MediaType.TEXT_PLAIN_VALUE])
     fun purchaseYacht(request: HttpServletRequest): ResponseEntity<String> {
         val newOwner = request.getParameter("newOwner")
         val newOwnerParty = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(newOwner)) ?: throw IllegalArgumentException("Unknown new owner name.")

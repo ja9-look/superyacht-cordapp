@@ -45,7 +45,7 @@ class FlowTests {
     private val type = "Motor Yacht"
     private val length = 12.15
     private val builderName = "Burgess"
-    private val yearOfBuild = "2018"
+    private val yearOfBuild = 2018
     private val amount = 600000
     private val currency = "USD"
     private val forSale = true

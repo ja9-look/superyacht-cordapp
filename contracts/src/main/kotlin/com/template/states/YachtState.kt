@@ -19,7 +19,7 @@ data class YachtState(
     val type: String,
     val length: Double,
     val builderName: String,
-    val yearOfBuild: String,
+    val yearOfBuild: Int,
     val price: Amount<Currency>,
     val forSale: Boolean,
     override val linearId: UniqueIdentifier,
