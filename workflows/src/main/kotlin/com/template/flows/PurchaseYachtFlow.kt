@@ -32,9 +32,9 @@ class PurchaseYachtFlow {
     @InitiatingFlow
     @StartableByRPC
     class Initiator(
-        private val newOwner: AbstractParty,
+        private val newOwner: Party,
         private val yachtLinearId: String
-    ) : FlowLogic<String>() {
+    ) : FlowLogic<SignedTransaction>() {
         companion object {
             object GENERATING_TRANSACTION : ProgressTracker.Step("Generating Transaction")
             object SIGNING_TRANSACTION : ProgressTracker.Step("Signing transaction with our private key.")
@@ -56,7 +56,7 @@ class PurchaseYachtFlow {
         override val progressTracker = tracker()
 
         @Suspendable
-        override fun call(): String {
+        override fun call(): SignedTransaction {
 
             val uniqueIdentifier = UniqueIdentifier.fromString(yachtLinearId)
 
@@ -102,17 +102,14 @@ class PurchaseYachtFlow {
                 val fullySignedTx= subFlow(CollectSignaturesFlow(partSignedTx, setOf(counterpartySession)))
 
                 progressTracker.currentStep = FINALISING_TRANSACTION
+
                 /* Call finality flow to notarise the transaction */
-                val stx = subFlow(FinalityFlow(
+                return subFlow(FinalityFlow(
                     transaction = fullySignedTx,
                     sessions = listOf(counterpartySession),
                     progressTracker = FINALISING_TRANSACTION.childProgressTracker()
                 ))
 
-                /* Distribution list is a list of identities that should receive updates. For this mechanism to behave correctly we call the UpdateDistributionListFlow flow */
-                subFlow(UpdateDistributionListFlow(stx))
-
-                return ("The yacht is sold to $newOwner")
                 }
             }
         }

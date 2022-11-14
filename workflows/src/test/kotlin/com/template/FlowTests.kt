@@ -121,6 +121,6 @@ class FlowTests {
         network.runNetwork()
 
         // Check that the new owner is correct
-        Assert.assertEquals("The yacht is sold to O=Mock Company 3, L=London, C=GB", purchaseYachtDvPFlowFuture.get())
+        Assert.assertTrue(purchaseYachtDvPFlowFuture.get()  is SignedTransaction)
     }
 }

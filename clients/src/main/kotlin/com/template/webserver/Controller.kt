@@ -14,9 +14,12 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.template.flows.CreateAndIssueYachtStateFlowInitiator
 import com.template.flows.IssueFiatCurrencyFlow
+import com.template.flows.PurchaseYachtFlow
+import com.template.flows.PurchaseYachtFlow.Initiator
 import net.corda.core.contracts.Amount
 import net.corda.core.messaging.startFlow
 import net.corda.core.messaging.startTrackedFlow
+import net.corda.core.utilities.getOrThrow
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -117,23 +120,24 @@ class Controller(rpc: NodeRPCConnection) {
         val me = proxy.nodeInfo().legalIdentities.first()
         val tokenRecipient = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(recipient)) ?: throw IllegalArgumentException("Unknown recipient name.")
 //             Issue a new fiat currency token to recipient using the parameters given.
-        try {
+        return try {
 
             // Start the IOUIssueFlow. We block and waits for the flow to return.
             val result = proxy.startTrackedFlow(::IssueFiatCurrencyFlow, currency, amount.toLong(), tokenRecipient).returnValue.get()
             // Return the response.
-            return ResponseEntity
+            ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body("Transaction id ${result.id} committed to ledger.\"Issued $amount $currency token(s) to $recipient \"")
 
             // For the purposes of this demo app, we do not differentiate by exception type.
         } catch (e: Exception) {
-            return ResponseEntity
+            ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(e.message)
         }
     }
 
+    // CreateAndIssueYachtStateFlow
 //    @PutMapping(value=["create-yacht"], produces = [MediaType.TEXT_PLAIN_VALUE], headers = ["Content-Type=application/x-www-form-urlencoded"])
 //    fun createAndIssueYachtState(request: HttpServletRequest): ResponseEntity<String> {
 //        val owner = request.getParameter("owner")
@@ -177,6 +181,30 @@ class Controller(rpc: NodeRPCConnection) {
 //
 //        }
 //    }
+
+    /**
+     * Initiates a flow to allow a Party (yacht buyer) to purchase a yacht in exchange for a token paid to another Party (yacht owner).
+     * Example Request: curl -X PUT "http://localhost:50005/issue-token?amount=100000&currency=USD&recipient=O=PartyB,L=New%20York,C=US"
+     */    @PutMapping (value = ["purchase-yacht"], produces = [MediaType.TEXT_PLAIN_VALUE])
+    fun purchaseYacht(request: HttpServletRequest): ResponseEntity<String> {
+        val newOwner = request.getParameter("newOwner")
+        val newOwnerParty = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(newOwner)) ?: throw IllegalArgumentException("Unknown new owner name.")
+        val yachtLinearId = request.getParameter("yachtLinearId") ?: return ResponseEntity.badRequest().body("Unknown yacht linear ID.")
+
+        return try {
+            val result = proxy.startTrackedFlow(::Initiator, newOwnerParty, yachtLinearId).returnValue.getOrThrow()
+            ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("Transaction id ${result.id} committed to ledger.\"The yacht's new owner is $newOwner\"")
+
+            // For the purposes of this demo app, we do not differentiate by exception type.
+        } catch (e: Exception) {
+            ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.message)
+        }
+    }
+
 
     /**
      * Initiates a flow to create a Yacht by the Yacht Issuer.
