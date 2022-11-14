@@ -163,9 +163,9 @@ curl -X PUT "http://localhost:50009/purchase-yacht?newOwner=O=PartyB,L=New%20Yor
 Let's check that this PUT request has been successful. Go to Postman and request the following URL:
 
 Party A Vault:
-* ```http://localhost:50009/my-yachts``` -> The response should be empty as Party A should not have any yachts.
+* ```http://localhost:50009/my-yachts``` -> The response should be empty as Party A should not have any `YachtState` in their vault.
 * ```http://localhost:50009/my-tokens``` -> The response should have the Fiat Currency Tokens that were paid to Party A from Party B in exchange for the `YachtState`.
 
 Party B Vault:
 * ```http://localhost:50011/my-yachts``` -> The response should return the `YachtState` that Party B just purchased from Party A.
-* ```http://localhost:50011/my-tokens``` -> The response should return the remaining amount of Fiat Currency Tokens in Party B's vault, after having purchased the Yacht from Party A.
+* ```http://localhost:50011/my-tokens``` -> The response should return the remaining amount of Fiat Currency Tokens in Party B's vault, after having purchased the `YachtState` from Party A.
