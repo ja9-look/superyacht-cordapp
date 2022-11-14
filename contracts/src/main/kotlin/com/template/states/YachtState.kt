@@ -3,6 +3,7 @@ package com.template.states
 import com.template.contracts.YachtContract
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
+import java.time.LocalDate
 import java.util.*
 
 
@@ -18,11 +19,7 @@ data class YachtState(
     val type: String,
     val length: Double,
     val builderName: String,
-    val yearOfBuild: Date,
-    val grossTonnage: Double,
-    val maxSpeed: Int,
-    val cruiseSpeed: Int,
-    val imageUrls: List<String>,
+    val yearOfBuild: String,
     val price: Amount<Currency>,
     val forSale: Boolean,
     override val linearId: UniqueIdentifier,
@@ -39,10 +36,6 @@ data class YachtState(
                 this.length,
                 this.builderName,
                 this.yearOfBuild,
-                this.grossTonnage,
-                this.maxSpeed,
-                this.cruiseSpeed,
-                this.imageUrls,
                 this.price,
                 this.forSale,
                 this.linearId,

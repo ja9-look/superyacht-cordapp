@@ -31,7 +31,7 @@ import java.util.UUID
 class PurchaseYachtFlow {
     @InitiatingFlow
     @StartableByRPC
-    class Initiator(
+    class PurchaseYachtFlowInitiator(
         private val newOwner: Party,
         private val yachtLinearId: String
     ) : FlowLogic<SignedTransaction>() {
@@ -113,7 +113,7 @@ class PurchaseYachtFlow {
                 }
             }
         }
-        @InitiatedBy(Initiator::class)
+        @InitiatedBy(PurchaseYachtFlowInitiator::class)
         class Responder(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
             @Suspendable
             override fun call():SignedTransaction {

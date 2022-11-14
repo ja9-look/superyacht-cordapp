@@ -10,6 +10,7 @@ import net.corda.core.contracts.Amount
 import net.corda.core.contracts.Contract
 import net.corda.core.contracts.UniqueIdentifier
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 import kotlin.test.assertTrue
 
@@ -27,11 +28,7 @@ class ContractTests {
         "Motor Yacht",
         12.15,
         "Burgess",
-        Date(2008),
-        17.06,
-        15,
-        12,
-        listOf("https://images.unsplash.com/photo-1528154291023-a6525fabe5b4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1064&q=80", "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80"),
+        "2008",
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         true,
         UniqueIdentifier(),
@@ -45,11 +42,7 @@ class ContractTests {
         "Motor Yacht",
         12.15,
         "Burgess",
-        Date(2008),
-        17.06,
-        15,
-        12,
-        listOf("https://images.unsplash.com/photo-1528154291023-a6525fabe5b4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1064&q=80", "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80"),
+        "2008",
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         true,
         UniqueIdentifier(),
@@ -63,11 +56,7 @@ class ContractTests {
         "Motor Yacht",
         12.15,
         "Burgess",
-        Date(2008),
-        17.06,
-        15,
-        12,
-        listOf("https://images.unsplash.com/photo-1528154291023-a6525fabe5b4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1064&q=80", "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80"),
+        "2008",
         Amount(6000000, BigDecimal("1"), Currency.getInstance("USD")),
         false,
         UniqueIdentifier(),
