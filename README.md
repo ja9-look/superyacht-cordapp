@@ -69,7 +69,7 @@ You should be able to see that in the output, there is the Fiat Currency Token t
 
 3. Then we need to create and issue a `YachtState` to the Yacht Owner (Party A). The Yacht Issuer will take on the responsibility and initiate this flow. So in the Yacht Issuer's Corda Interactive Shell, type:
 ```
-flow start CreateAndIssueYachtStateFlow$Initiator owner: PartyA, name: "World Traveller", type: "Motor", length: 18.04, builderName: "Burgess", yearOfBuild: 2009, amount: 100000, currency: USD, forSale: true
+flow start CreateAndIssueYachtStateFlow$CreateAndIssueYachtStateFlowInitiator owner: PartyA, name: "World Traveller", type: "Motor", length: 18.04, builderName: "Burgess", yearOfBuild: 2009, amount: 100000, currency: USD, forSale: true
 ```
 Once this flow has completed, you should see the following:
 
